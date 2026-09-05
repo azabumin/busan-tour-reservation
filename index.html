@@ -38,7 +38,9 @@
   .brand b{display:block;font-size:17px;letter-spacing:.02em}
   .brand span{display:block;font-size:11.5px;opacity:.82;letter-spacing:.14em}
   .head-note{font-size:12px;opacity:.85;text-align:right}
-  nav.tabs{display:flex;gap:6px;padding-bottom:0;flex-wrap:wrap}
+  /* タブは既定で非表示。?admin=1 のときだけ出します（読み込み中のちらつき防止） */
+  nav.tabs{display:none;gap:6px;padding-bottom:0;flex-wrap:wrap}
+  body.admin nav.tabs{display:flex}
   nav.tabs button{
     appearance:none;border:0;background:rgba(255,255,255,.12);color:#fff;
     font:inherit;font-size:13.5px;padding:10px 18px;border-radius:10px 10px 0 0;
@@ -245,6 +247,15 @@
 
   footer{border-top:1px solid var(--line);padding:20px 0 40px;color:var(--muted);font-size:12px;text-align:center}
 
+  /* ---------- guest / admin ---------- */
+  body.guest .card.rules-card{margin-bottom:18px}
+  .brand .admin-badge{display:none;font-size:11px;font-weight:700;letter-spacing:.06em;
+    opacity:1;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.45);
+    border-radius:999px;padding:2px 10px;margin-left:10px;vertical-align:2px}
+  body.admin .brand .admin-badge{display:inline-block}
+  .guest-note{background:#fffdf5;border:1px solid #f0e2b8;border-radius:10px;
+    padding:12px 16px;margin:14px 0;font-size:12.5px;color:#7a5f1e;line-height:1.7;text-align:left}
+
   /* ---------- fee & rules ---------- */
   .fee-box{border:1px solid #cfe4f5;background:var(--sea-l);border-radius:12px;padding:14px 16px;margin-top:16px}
   .fee-h{font-size:12.5px;font-weight:700;color:var(--sea-d);letter-spacing:.04em;margin-bottom:8px}
@@ -344,7 +355,7 @@
       <div class="brand">
         <div class="mark">🌊</div>
         <div>
-          <b>釜山旅行デスク</b>
+          <b>釜山旅行デスク<span class="admin-badge">管理モード</span></b>
           <span>BUSAN TRIP RESERVATION DESK</span>
         </div>
       </div>
@@ -506,7 +517,12 @@
     <div class="done">
       <div class="ic">✓</div>
       <h2>ご予約を承りました</h2>
-      <p>担当スタッフより1営業日以内にご連絡いたします。<br>下記の予約番号をお控えください。</p>
+      <p>下記の予約番号をお控えください。</p>
+      <div class="guest-note" id="guestNote" style="display:none;max-width:520px;margin:0 auto 18px">
+        <b>このあとのお手続き</b><br>
+        ご予約内容はこの画面に保存されています。お手数ですが、<b>予約番号をLINEまたはメールでお知らせください。</b>
+        担当スタッフより確認のご連絡を差し上げます。
+      </div>
       <div class="resno" id="doneNo">—</div>
       <div id="doneSummary" style="max-width:520px;margin:0 auto 24px;text-align:left"></div>
       <button type="button" class="btn ghost" id="btnNew">続けて新しい予約を入力する</button>
@@ -588,7 +604,7 @@
 
 <footer class="wrap">
   釜山旅行デスク（BUSAN TRIP DESK）　お問い合わせ：LINE @busantrip ／ busan-desk@example.com<br>
-  ※ ご予約データはこの端末のブラウザ内にのみ保存されます。
+  ※ ご予約データはこの端末のブラウザ内にのみ保存されます。<span id="adminHint"></span>
 </footer>
 
 <!-- ============ 詳細モーダル ============ -->
@@ -2200,10 +2216,24 @@ function renderDayList(){
 }
 
 /* =========================================================
+   表示モード
+   ・お客さま向け（既定）：予約フォームのみ
+   ・管理モード：URLの末尾に ?admin=1 を付けると全タブが出ます
+     例）https://…/busan-tour-reservation/?admin=1
+   ※ 画面の出し分けだけの機能です。データは各ブラウザ内にあります
+   ========================================================= */
+var IS_ADMIN = /[?&]admin=1(?:&|$)/.test(location.search) || location.hash === '#admin';
+document.body.className = IS_ADMIN ? 'admin' : 'guest';
+if(!IS_ADMIN){
+  var gn=$('#guestNote'); if(gn) gn.style.display='block';
+}
+
+/* =========================================================
    タブ切替 & 初期化
    ========================================================= */
 $$('nav.tabs button').forEach(function(b){
   b.addEventListener('click', function(){
+    if(!IS_ADMIN && b.getAttribute('data-tab')!=='form') return;
     $$('nav.tabs button').forEach(function(x){ x.classList.remove('on'); });
     b.classList.add('on');
     $$('.panel').forEach(function(p){ p.classList.remove('on'); });
@@ -2214,6 +2244,10 @@ $$('nav.tabs button').forEach(function(b){
 
 function refreshAll(){ renderStats(); renderList(); renderSch(); renderCal(); }
 
+if(IS_ADMIN){
+  var ah=$('#adminHint');
+  if(ah) ah.innerHTML='<br>管理モードで表示しています（URLの ?admin=1 を外すとお客さま画面になります）。';
+}
 $('#rulesBox').innerHTML = rulesHtml();
 $('#planRules').innerHTML = rulesHtml();
 renderCourses(); renderPurposes(); renderSelBox(); syncPeople();

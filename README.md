@@ -3,7 +3,10 @@
 일본인 관광객을 대상으로 한 **부산 여행 예약 접수 + 예약 현황 파악 + 일정 정리** 앱입니다.
 빌드·설치 없이 `index.html` 하나로 동작합니다.
 
-🔗 **https://azabumin.github.io/busan-tour-reservation/**
+| | 주소 | 보이는 것 |
+|---|---|---|
+| 손님용 | **https://azabumin.github.io/busan-tour-reservation/** | 예약 폼만 |
+| 운영자용 | **https://azabumin.github.io/busan-tour-reservation/?admin=1** | 탭 3개 전부 |
 
 ## 기능
 
